@@ -7,12 +7,13 @@ const { PAGE_NOT_FOUND } = require('../constants/status_code.const')
 const { HEADERS } = require('../constants/header.const')
 
 const server = http.createServer(async (req, res) => {
+  // Inital Request
   const app = new Request(req.url, req.method)
 
   // Router Book
   router.book(app, req, res)
 
-  if (!app.URLS.includes(req.url)) {
+  if (!app.ROUTES.includes(`${req.method} : ${req.url}`)) {
     res.writeHead(PAGE_NOT_FOUND, HEADERS)
     res.end(JSON.stringify({ message: 'Page not found' }))
   }

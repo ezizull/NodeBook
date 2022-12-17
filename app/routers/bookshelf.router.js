@@ -1,11 +1,6 @@
-const { HEADERS } = require('../constants/header.const')
-
-const { SUCCESS } = require('../constants/status_code.const')
+const { GetAllBooks } = require('../controllers/book.controller')
 
 exports.book = (app, req, res) => {
-  app.get('/books', () => {
-    res.writeHead(SUCCESS, HEADERS)
-    res.write(JSON.stringify({ message: 'Get Book' }))
-    res.end()
-  })
+  // Get all Book
+  app.get('/books', GetAllBooks(req, res))
 }

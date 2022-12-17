@@ -2,33 +2,41 @@ class Request {
   constructor (URL, method) {
     this.URL = URL
     this.method = method
-    this.URLS = []
+    this.ROUTES = []
   }
 
+  // Get Request
   get (url, funct) {
-    this.URLS.push(url)
-    if (this.URLS.includes(this.URL) && this.method === 'GET') {
+    if (url === this.URL && this.method === 'GET') {
+      this.ROUTES.push(`GET : ${url}`)
+
       return funct()
     }
   }
 
+  // POST Request
   post (url, funct) {
-    this.URLS.push(url)
-    if (this.URLS.includes(this.URL) && this.method === 'POST') {
+    if (url === this.URL && this.method === 'POST') {
+      this.ROUTES.push(`POST : ${url}`)
+
       return funct()
     }
   }
 
+  // PUT Request
   put (url, funct) {
-    this.URLS.push(url)
-    if (this.URLS.includes(this.URL) && this.method === 'PUT') {
+    if (url === this.URL && this.method === 'PUT') {
+      this.ROUTES.push(`PUT : ${url}`)
+
       return funct()
     }
   }
 
+  // DELETE Request
   del (url, funct) {
-    this.URLS.push(url)
-    if (this.URLS.includes(this.URL) && this.method === 'DELETE') {
+    if (url === this.URL && this.method === 'DELETE') {
+      this.ROUTES.push(`DELETE : ${url}`)
+
       return funct()
     }
   }

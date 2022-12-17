@@ -1,7 +1,25 @@
-const nanoid = require('nanoid')
-const { Books, Book } = require('../models/model')
+const { SUCCESS } = require('../constants/status_code.const')
+const { HEADERS } = require('../constants/header.const')
 
-const addBookController = (req, res) => {
+const { Books, Book } = require('../models/book/book.model')
+
+function GetAllBooks (req, res) {
+  return function () {
+    res.writeHead(SUCCESS, HEADERS)
+    res.end(JSON.stringify({
+      status: 'success',
+      data: {
+        books: Books.map((book) => ({
+          id: book.id,
+          name: book.name,
+          publisher: book.publisher
+        }))
+      }
+    }))
+  }
+}
+
+const AddBook = (req, res) => {
   const {
     name,
     year,
@@ -13,7 +31,7 @@ const addBookController = (req, res) => {
     reading
   } = req.payload
 
-  const id = nanoid.nanoid(16)
+  const id = 1 // nanoid(16)
   const insertedAt = new Date().toISOString()
   const updatedAt = insertedAt
   const finished = pageCount === readPage
@@ -77,18 +95,7 @@ const addBookController = (req, res) => {
   return response
 }
 
-const getAllBooksController = () => ({
-  status: 'success',
-  data: {
-    books: Books.map((book) => ({
-      id: book.id,
-      name: book.name,
-      publisher: book.publisher
-    }))
-  }
-})
-
-const getBookByIDController = (req, res) => {
+const GetBookByID = (req, res) => {
   const { bookId } = req.params
   const book = Books.filter((book) => book.id === bookId)[0]
 
@@ -111,7 +118,7 @@ const getBookByIDController = (req, res) => {
   return response
 }
 
-const editBookByIDController = (req, res) => {
+const EditBookByID = (req, res) => {
   const { bookId } = req.params
 
   const {
@@ -180,7 +187,7 @@ const editBookByIDController = (req, res) => {
   return response
 }
 
-const deleteBookByIDController = (req, res) => {
+const DeleteBookByID = (req, res) => {
   const { bookId } = req.params
 
   const index = Books.findIndex((book) => book.id === bookId)
@@ -204,4 +211,4 @@ const deleteBookByIDController = (req, res) => {
   return response
 }
 
-module.exports = { addBookController, getAllBooksController, getBookByIDController, editBookByIDController, deleteBookByIDController }
+module.exports = { GetAllBooks, AddBook, GetBookByID, EditBookByID, DeleteBookByID }
