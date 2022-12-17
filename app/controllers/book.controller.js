@@ -1,7 +1,9 @@
-const { SUCCESS } = require('../constants/status_code.const')
+const { nanoid } = require('nanoid')
+
+const { SUCCESS, EMPTY_REQUEST_BODY, READ_PAGE_MORE_THAN_COUNTED, GENERIC_ERROR } = require('../constants/status_code.const')
 const { HEADERS } = require('../constants/header.const')
 
-const { Books, Book } = require('../models/book/book.model')
+const { Books } = require('../models/book/book.model')
 
 function GetAllBooks (req, res) {
   return function () {
@@ -20,79 +22,80 @@ function GetAllBooks (req, res) {
 }
 
 const AddBook = (req, res) => {
-  const {
-    name,
-    year,
-    author,
-    summary,
-    publisher,
-    pageCount,
-    readPage,
-    reading
-  } = req.payload
+  return function () {
+    let data = ''
 
-  const id = 1 // nanoid(16)
-  const insertedAt = new Date().toISOString()
-  const updatedAt = insertedAt
-  const finished = pageCount === readPage
-
-  const book = new Book(
-    id,
-    name,
-    year,
-    author,
-    summary,
-    publisher,
-    pageCount,
-    readPage,
-    finished,
-    reading,
-    insertedAt,
-    updatedAt)
-
-  const isBookNameEmpty = name === undefined || name === null || name === ''
-  const isReadPageLarger = readPage > pageCount
-
-  if (isBookNameEmpty) {
-    const response = res.response({
-      status: 'fail',
-      message: 'Gagal menambahkan buku. Mohon isi nama buku'
+    req.on('data', function (dataChunk) {
+      data += dataChunk
     })
-    response.code(400)
-    return response
-  }
 
-  if (isReadPageLarger) {
-    const response = res.response({
-      status: 'fail',
-      message:
-        'Gagal menambahkan buku. readPage tidak boleh lebih besar dari pageCount'
-    })
-    response.code(400)
-    return response
-  }
+    req.on('end', function () {
+      req.rawBody = data
 
-  Books.push(book)
-  const isSuccess = Books.filter((book) => book.id === id).length > 0
-
-  if (isSuccess) {
-    const response = res.response({
-      status: 'success',
-      message: 'Buku berhasil ditambahkan',
-      data: {
-        bookId: id
+      if (data && data.indexOf('{') > -1) {
+        data = JSON.parse(data)
       }
-    })
-    response.code(201)
-    return response
-  }
 
-  const response = res.response({
-    status: 'error',
-    message: 'Buku gagal ditambahkan'
-  })
-  response.code(500)
-  return response
+      const id = nanoid(16)
+      const insertedAt = new Date().toISOString()
+      const updatedAt = insertedAt
+      const finished = data.pageCount === data.readPage
+
+      const Book = {
+        id,
+        name: data.name,
+        year: data.year,
+        author: data.author,
+        summary: data.summary,
+        publisher: data.publisher,
+        pageCount: data.pageCount,
+        readPage: data.readPage,
+        finished,
+        reading: data.reading,
+        insertedAt,
+        updatedAt
+      }
+
+      const isBookNameEmpty = data.name === undefined || data.name === null || data.name === ''
+      const isReadPageLarger = data.readPage > data.pageCount
+
+      if (isBookNameEmpty) {
+        res.writeHead(EMPTY_REQUEST_BODY, HEADERS)
+        return res.end(JSON.stringify({
+          status: 'fail',
+          message: 'Gagal menambahkan buku. Mohon isi nama buku'
+        }))
+      }
+
+      if (isReadPageLarger) {
+        res.writeHead(READ_PAGE_MORE_THAN_COUNTED, HEADERS)
+        return res.end(JSON.stringify({
+          status: 'fail',
+          message: 'Gagal menambahkan buku. readPage tidak boleh lebih besar dari pageCount'
+        }))
+      }
+
+      Books.push(Book)
+      const isSuccess = Books.filter((book) => book.id === id).length > 0
+
+      if (isSuccess) {
+        res.writeHead(SUCCESS, HEADERS)
+        return res.end(JSON.stringify({
+          status: 'success',
+          message: 'Buku berhasil ditambahkan',
+          data: {
+            bookId: id
+          }
+        }))
+      }
+
+      res.writeHead(GENERIC_ERROR, HEADERS)
+      return res.end(JSON.stringify({
+        status: 'error',
+        message: 'Buku gagal ditambahkan'
+      }))
+    })
+  }
 }
 
 const GetBookByID = (req, res) => {
@@ -193,7 +196,7 @@ const DeleteBookByID = (req, res) => {
   const index = Books.findIndex((book) => book.id === bookId)
 
   if (index !== -1) {
-    Book.splice(index, 1)
+    Books.splice(index, 1)
     const response = res.response({
       status: 'success',
       message: 'Buku berhasil dihapus'
