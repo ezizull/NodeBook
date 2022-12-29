@@ -1,15 +1,15 @@
+const { Routers } = require('../routers/routers')
+
 class Request {
   constructor (URL, method) {
     this.URL = URL
     this.method = method
-    this.ROUTES = []
   }
 
   // Get Request
   get (url, funct) {
     if (url === this.URL && this.method === 'GET') {
-      this.ROUTES.push(`GET : ${url}`)
-
+      Routers.push(`GET : ${url}`)
       return funct()
     }
   }
@@ -17,8 +17,7 @@ class Request {
   // POST Request
   post (url, funct) {
     if (url === this.URL && this.method === 'POST') {
-      this.ROUTES.push(`POST : ${url}`)
-
+      Routers.push(`POST : ${url}`)
       return funct()
     }
   }
@@ -26,8 +25,7 @@ class Request {
   // PUT Request
   put (url, funct) {
     if (url === this.URL && this.method === 'PUT') {
-      this.ROUTES.push(`PUT : ${url}`)
-
+      Routers.push(`PUT : ${url}`)
       return funct()
     }
   }
@@ -35,8 +33,7 @@ class Request {
   // DELETE Request
   del (url, funct) {
     if (url === this.URL && this.method === 'DELETE') {
-      this.ROUTES.push(`DELETE : ${url}`)
-
+      Routers.push(`DELETE : ${url}`)
       return funct()
     }
   }

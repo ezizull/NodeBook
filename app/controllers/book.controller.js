@@ -1,6 +1,6 @@
 const { nanoid } = require('nanoid')
 
-const { SUCCESS, EMPTY_REQUEST_BODY, READ_PAGE_MORE_THAN_COUNTED, GENERIC_ERROR } = require('../constants/status_code.const')
+const { SUCCESS, EMPTY_REQUEST_BODY, READ_PAGE_MORE_THAN_COUNTED, GENERIC_ERROR, BOOKID_NOT_FOUND } = require('../constants/status_code.const')
 const { HEADERS } = require('../constants/header.const')
 
 const { Books } = require('../models/book/book.model')
@@ -99,26 +99,25 @@ const AddBook = (req, res) => {
 }
 
 const GetBookByID = (req, res) => {
-  const { bookId } = req.params
-  const book = Books.filter((book) => book.id === bookId)[0]
+  return function () {
+    const { bookId } = 'nani'// req.query.bookId
 
-  if (book !== undefined) {
-    const response = res.response({
-      status: 'success',
-      data: {
-        book
-      }
-    })
-    response.code(200)
-    return response
+    const book = Books.filter((book) => book.id === bookId)[0]
+
+    if (book !== undefined) {
+      res.writeHead(SUCCESS, HEADERS)
+      return res.end(JSON.stringify({
+        status: 'success',
+        data: { book }
+      }))
+    }
+
+    res.writeHead(BOOKID_NOT_FOUND, HEADERS)
+    return res.end(JSON.stringify({
+      status: 'fail',
+      message: 'Buku tidak ditemukan'
+    }))
   }
-
-  const response = res.response({
-    status: 'fail',
-    message: 'Buku tidak ditemukan'
-  })
-  response.code(404)
-  return response
 }
 
 const EditBookByID = (req, res) => {

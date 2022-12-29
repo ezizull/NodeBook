@@ -13,7 +13,8 @@
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
-    "nanoid": "^3.0.0"
+    "nanoid": "^3.0.0",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "eslint": "^8.29.0",
