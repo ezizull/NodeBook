@@ -1,4 +1,4 @@
-const { GetAllBooks, AddBook, GetBookByID } = require('../controllers/book.controller')
+const { GetAllBooks, AddBook, GetBookByID, EditBookByID, DeleteBookByID } = require('../controllers/book.controller')
 const { Request } = require('../constants/request.const')
 
 exports.book = (req, res) => {
@@ -11,5 +11,11 @@ exports.book = (req, res) => {
   app.post('/books', AddBook(req, res))
 
   // Get Book By ID
-  app.get('/books/', GetBookByID(req, res))
+  app.get(`/books/${req.url.substring(7, 23)}`, GetBookByID(req, res))
+
+  // Update Book By ID
+  app.put(`/books/${req.url.substring(7, 23)}`, EditBookByID(req, res))
+
+  // Delete Book By ID
+  app.del(`/books/${req.url.substring(7, 23)}`, DeleteBookByID(req, res))
 }

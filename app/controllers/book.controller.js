@@ -100,7 +100,7 @@ const AddBook = (req, res) => {
 
 const GetBookByID = (req, res) => {
   return function () {
-    const { bookId } = 'nani'// req.query.bookId
+    const bookId = req.url.substring(7, 23)
 
     const book = Books.filter((book) => book.id === bookId)[0]
 
@@ -121,96 +121,116 @@ const GetBookByID = (req, res) => {
 }
 
 const EditBookByID = (req, res) => {
-  const { bookId } = req.params
+  return function () {
+    const bookId = req.url.substring(7, 23)
 
-  const {
-    name,
-    year,
-    author,
-    summary,
-    publisher,
-    pageCount,
-    readPage,
-    reading
-  } = req.payload
-  const updatedAt = new Date().toISOString()
+    let data = ''
 
-  const isBookNameEmpty = name === undefined || name === null || name === ''
-  const isReadPageLarger = readPage > pageCount
-
-  if (isBookNameEmpty) {
-    const response = res.response({
-      status: 'fail',
-      message: 'Gagal memperbarui buku. Mohon isi nama buku'
+    req.on('data', function (dataChunk) {
+      data += dataChunk
     })
-    response.code(400)
-    return response
-  }
 
-  if (isReadPageLarger) {
-    const response = res.response({
-      status: 'fail',
-      message:
-        'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount'
+    req.on('end', function () {
+      req.rawBody = data
+
+      if (data && data.indexOf('{') > -1) {
+        data = JSON.parse(data)
+      }
+
+      const [
+        name,
+        year,
+        author,
+        summary,
+        publisher,
+        pageCount,
+        readPage,
+        reading
+      ] = [
+        data.name,
+        data.year,
+        data.author,
+        data.summary,
+        data.publisher,
+        data.pageCount,
+        data.readPage,
+        data.reading
+      ]
+
+      const updatedAt = new Date().toISOString()
+
+      const isBookNameEmpty = name === undefined || name === null || name === ''
+      const isReadPageLarger = readPage > pageCount
+
+      if (isBookNameEmpty) {
+        res.writeHead(EMPTY_REQUEST_BODY, HEADERS)
+        return res.end(JSON.stringify({
+          status: 'fail',
+          message: 'Gagal memperbarui buku. Mohon isi nama buku'
+        }))
+      }
+
+      if (isReadPageLarger) {
+        res.writeHead(EMPTY_REQUEST_BODY, HEADERS)
+        return res.end(JSON.stringify({
+          status: 'fail',
+          message: 'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount'
+        }))
+      }
+
+      const index = Books.findIndex((book) => book.id === bookId)
+
+      if (index !== -1) {
+        Books[index] = {
+          ...Books[index],
+          name,
+          year,
+          author,
+          summary,
+          publisher,
+          pageCount,
+          readPage,
+          reading,
+          updatedAt
+        }
+
+        res.writeHead(SUCCESS, HEADERS)
+        return res.end(JSON.stringify({
+          status: 'success',
+          message: 'Buku berhasil diperbarui'
+        }))
+      }
+
+      res.writeHead(BOOKID_NOT_FOUND, HEADERS)
+      return res.end(JSON.stringify({
+        status: 'fail',
+        message: 'Gagal memperbarui buku. Id tidak ditemukan'
+      }))
     })
-    response.code(400)
-    return response
   }
-
-  const index = Books.findIndex((book) => book.id === bookId)
-
-  if (index !== -1) {
-    Books[index] = {
-      ...Books[index],
-      name,
-      year,
-      author,
-      summary,
-      publisher,
-      pageCount,
-      readPage,
-      reading,
-      updatedAt
-    }
-
-    const response = res.response({
-      status: 'success',
-      message: 'Buku berhasil diperbarui'
-    })
-    response.code(200)
-    return response
-  }
-
-  const response = res.response({
-    status: 'fail',
-    message: 'Gagal memperbarui buku. Id tidak ditemukan'
-  })
-  response.code(404)
-  return response
 }
 
 const DeleteBookByID = (req, res) => {
-  const { bookId } = req.params
+  return function () {
+    const bookId = req.url.substring(7, 23)
 
-  const index = Books.findIndex((book) => book.id === bookId)
+    const index = Books.findIndex((book) => book.id === bookId)
 
-  if (index !== -1) {
-    Books.splice(index, 1)
-    const response = res.response({
-      status: 'success',
-      message: 'Buku berhasil dihapus'
-    })
-    response.code(200)
-    return response
+    if (index !== -1) {
+      Books.splice(index, 1)
+      res.writeHead(SUCCESS, HEADERS)
+      return res.end(JSON.stringify({
+        status: 'success',
+        message: 'Buku berhasil dihapus'
+      }))
+    }
+
+    res.writeHead(BOOKID_NOT_FOUND, HEADERS)
+    return res.end(JSON.stringify({
+      status: 'fail',
+      message: 'Buku gagal dihapus. Id tidak ditemukan'
+    }))
   }
-
-  const response = res.response({
-    status: 'fail',
-    message: 'Buku gagal dihapus. Id tidak ditemukan'
-  })
-
-  response.code(404)
-  return response
 }
 
 module.exports = { GetAllBooks, AddBook, GetBookByID, EditBookByID, DeleteBookByID }
